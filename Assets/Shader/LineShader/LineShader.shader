@@ -50,7 +50,7 @@
 				v2f o;
 
 
-				//頂点の位置を調整するためのもの　0.5は頂点の色の違い
+				//頂点の位置を調整するためのもの　0.5は頂点の色の違い -0.5は上の頂点を見たいため。
 				o.line_info = float2(v.vertex.y + 0.5 , v.vertex.y - 0.5);
 				//o.line_info = float2(v.vertex.x, v.vertex.y);
 				o.vertex = UnityObjectToClipPos(v.vertex);
@@ -78,7 +78,7 @@
 				float _range2 =  step(_adjustedLine - i.line_info.y,_DRange);
 	
 
-				//距離による色の減衰  描画をあくまでも↑が白くしたいので１から引く
+				//距離による色の減衰  描画をあくまでも↑が白くしたいので１から引く　範囲を明確にしたいのでべき乗で調整
 				float _distance1 = 1 - distance(i.line_info.x, _adjustedLine);
 				_distance1 = pow(_distance1 , _PowRange);
 
@@ -89,10 +89,8 @@
 				float _ans1 = _lineHmatch1 * _range1 *_distance1;
 				float _ans2 = _lineHmatch2 * _range2 *_distance2;
 
-
-				//return _lineHmatch1 *_range1 * _distance1;
 				return max(_ans1, _ans2);
-				//return i.line_info.x * i.line_info.y;
+
 			}
 			ENDCG
 		}
