@@ -4,6 +4,8 @@
 	{
 		_MainTex ("Texture", 2D) = "white" {}
 		_Line("BorderLine",Range(0,5)) = 1
+		_DRange("DisplayRange",Range(0.0,1.0)) = 0.2
+		_PowRange("Pow",Range(0,20)) = 10
 	}
 	SubShader
 	{
@@ -38,14 +40,19 @@
 			sampler2D _MainTex;
 			float4 _MainTex_ST;
 			float _Line;
-			
+			float _DRange;
+			//べき乗の回数
+			int _PowRange;
+
+
 			v2f vert (appdata v)
 			{
 				v2f o;
 
 
-				//0－1  変換前の頂点の値、 今の線分と頂点の距離、　－値の時は0にする。
-				o.line_info = float2(v.vertex.y  - 2.5, max(0, _Line - v.vertex.y));
+				//頂点の位置を調整するためのもの　0.5は頂点の色の違い
+				o.line_info = float2(v.vertex.y + 0.5 , v.vertex.y - 0.5);
+				//o.line_info = float2(v.vertex.x, v.vertex.y);
 				o.vertex = UnityObjectToClipPos(v.vertex);
 				o.uv = TRANSFORM_TEX(v.uv, _MainTex);
 				UNITY_TRANSFER_FOG(o,o.vertex);
@@ -56,32 +63,36 @@
 			{
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
-				// apply fog
-				//UNITY_APPLY_FOG(i.fogCoord, col);
 
-				//白と黒の逆転表現
-				//float distance_result = 1 - step(_Line,i.line_info.x);
+				//調整されたLineの高さ 0-1.0の範囲で納める
+				float _adjustedLine = fmod(_Line ,1.0);
+				
+				//ラインの一致している部分
+				//頂点の値の一致する部分
+				float _lineHmatch1 = step(i.line_info.x, _adjustedLine);
+				//足された側の一致したところ
+				float _lineHmatch2 = step(i.line_info.y,_adjustedLine);
 
-				//少し間延びするけど、ひとまずいい感じ動く
-				//float up_down_result = 1- max(0,_Line - i.line_info.x) * (distance(cos(_Line),i.line_info.x) + 1.9);
+				//描画を行う範囲
+				float _range1 =  step(_adjustedLine - i.line_info.x, _DRange);
+				float _range2 =  step(_adjustedLine - i.line_info.y,_DRange);
+	
+
+				//距離による色の減衰  描画をあくまでも↑が白くしたいので１から引く
+				float _distance1 = 1 - distance(i.line_info.x, _adjustedLine);
+				_distance1 = pow(_distance1 , _PowRange);
+
+				float _distance2 = 1 - distance(i.line_info.y, _adjustedLine);
+				_distance2 = pow(_distance2, _PowRange);
 
 
-				//実験用  たぶんこれでループするはず。
-				//float up_down_result = 1 - max(0,_Line - i.line_info.x) *(cos(fmod(distance(_Line, i.line_info.x),45)));
+				float _ans1 = _lineHmatch1 * _range1 *_distance1;
+				float _ans2 = _lineHmatch2 * _range2 *_distance2;
 
 
-				//超えてないとこと、超えた時のRangeの2種類 1.0は超えた時の値  白線の広さ
-				float _range1 = step(0.0,   fmod(distance(_Line, i.line_info.x),1.0));
-				float _range2 = step(0.0,   fmod(distance(_Line, i.line_info.x + 1.0), 1.0));
-															//*2は、光からの距離を短くするための数値
-				float _distance =   fmod(distance(_Line, i.line_info.x), 1.0) * 2;//fmod(_Line,2.0) - i.line_info.x;
-				float _distance2 = fmod(distance(_Line, i.line_info.x + 1.0), 1.0) * 2;
-				float _dis1 = _distance;//step(0, _distance) *_distance * _range1;
-				float _dis2 = _distance2;//step(0, _distance) * _distance * _range2;
-
-				//両方のいいとこどり
-				return 1 - (min(_range1, _range2))  * min(_dis1, _dis2) ; // * _distance;
-																	 //return (distance_result  * up_down_result);
+				//return _lineHmatch1 *_range1 * _distance1;
+				return max(_ans1, _ans2);
+				//return i.line_info.x * i.line_info.y;
 			}
 			ENDCG
 		}
