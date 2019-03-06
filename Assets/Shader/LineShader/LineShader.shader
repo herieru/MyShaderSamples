@@ -6,6 +6,8 @@
 		_Line("BorderLine",Range(0,5)) = 1
 		_DRange("DisplayRange",Range(0.0,1.0)) = 0.2
 		_PowRange("Pow",Range(0,20)) = 10
+		_SinAdge("SAdge",Range(0.1,32.0)) = 0.1
+		_CosAdge("CAdge",Range(0.1,32.0))=0.1
 	}
 	SubShader
 	{
@@ -41,6 +43,8 @@
 			float4 _MainTex_ST;
 			float _Line;
 			float _DRange;
+			float _SinAdge;
+			float _CosAdge;
 			//べき乗の回数
 			int _PowRange;
 
@@ -64,14 +68,15 @@
 				// sample the texture
 				fixed4 col = tex2D(_MainTex, i.uv);
 
+				float _f_mod_sin =sin(i.uv.x * _SinAdge) / _SinAdge;
 				//調整されたLineの高さ 0-1.0の範囲で納める
-				float _adjustedLine = fmod(_Line ,1.0);
+				float _adjustedLine = fmod(_Line  +  _f_mod_sin,1.0);
 				
 				//ラインの一致している部分
 				//頂点の値の一致する部分
 				float _lineHmatch1 = step(i.line_info.x, _adjustedLine);
 				//足された側の一致したところ
-				float _lineHmatch2 = step(i.line_info.y,_adjustedLine);
+				float _lineHmatch2 = step(i.line_info.y ,_adjustedLine);
 
 				//描画を行う範囲
 				float _range1 =  step(_adjustedLine - i.line_info.x, _DRange);
