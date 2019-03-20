@@ -91,9 +91,11 @@
 				_distance2 = pow(_distance2, _PowRange);
 
 
+				//塗り具合を求める
 				float _ans1 = _lineHmatch1 * _range1 *_distance1;
 				float _ans2 = _lineHmatch2 * _range2 *_distance2;
 
+				//どっちかが塗る対象だったら、塗る
 				return max(_ans1, _ans2);
 
 			}
