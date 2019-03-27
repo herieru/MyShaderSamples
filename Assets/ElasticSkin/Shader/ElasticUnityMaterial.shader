@@ -5,9 +5,13 @@ Shader "Unlit/ElasticSkinUnity"
 	Properties
 	{
 		//肌テクスチャ
-		_SkinTex("Texture", 2D) = "white" {}
+		_SkinTex("SkinTexture", 2D) = "white" {}
 		//ノーマルマップ
 		_SkinNormalMap("Normal map",2D) = "white"{}
+
+		//弾力テクスチャ  0だと骨っぽい固さ　１だとぷにぷに
+		_ElasticSkin("ElasticSkinTexture",2D) = "black"{}
+
 		//圧力
 		[PowerSlider(0,1)]_PressPower("PressPower",Range(0.0,1)) = 0
 		//押している位置 (最後の方になったら正式に使用する。)
@@ -56,6 +60,10 @@ Shader "Unlit/ElasticSkinUnity"
 		sampler2D _SkinTex;
 		// 肌のノーマルマップ
 		sampler2D  _SkinNormalMap;
+		//弾力テクスチャ
+		sampler2D _ElasticSkin;
+
+
 		//圧力
 		float _PressPower;
 		//メッシュでの抑えた位置
@@ -136,17 +144,14 @@ Shader "Unlit/ElasticSkinUnity"
 		fixed4 frag(v2f _i) : SV_Target
 		{
 			// sample the texture
-			fixed4 _col = tex2D(_SkinTex, _i.uv);
+			fixed4 _col = tex2D(_ElasticSkin, _i.uv);
 			//return col;
 			float _dot = dot(_LightDir, _i.normal);
 
 
 
-			return fixed4(_dot, _dot, _dot, _dot);
+			return   fixed4(_dot, _dot, _dot, _dot);
 		
-			//float _uv_c = _i.uv.x * _i.uv.y;
-			//return fixed4(_uv_c, _uv_c, _uv_c, _uv_c);
-			//return _col;
 		}
 			ENDCG
 		}
