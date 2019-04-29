@@ -67,14 +67,21 @@ Shader "PostEffect/TrickArtShader"
 			{
 				fixed4 col = tex2D(_CameraDepthTexture, i.uv);
 				// just invert the colors
-				col.rgb = 1 - col.rgb;
+				//col.rgb = 1 - col.rgb;
+				float _depth = col.r * col.r * col.r * 10;
+
+				_depth = fmod(_depth, 1.0);
 
 				float _uv_interval = 1.0 / _LineInterVal;
 				//線を描画する。
-				float _mod_interval = fmod(i.uv.y, _uv_interval);
-
+				//float _mod_interval = fmod(i.uv.y, _uv_interval);
+				float _mod_interval = fmod(i.uv.y - _depth,_uv_interval);
 				col = step(_mod_interval, _AcceptUV);
-			
+				
+				//差を明確にするためのもの
+				//float _depth = col.r * col.r * col.r * 10;
+				//col = col * _depth;
+				//col.g = step(_mod_interval, _AcceptUV);
 
 				return col;
 			}
