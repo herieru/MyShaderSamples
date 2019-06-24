@@ -65,16 +65,16 @@ Shader "PostEffect/TrickArtShader"
 
 			fixed4 frag (v2f i) : SV_Target
 			{
+				//textureの色を取得
 				fixed4 col = tex2D(_CameraDepthTexture, i.uv);
-				// just invert the colors
-				//col.rgb = 1 - col.rgb;
-				float _depth = col.r * col.r * col.r * 10;
+				// 距離に応じたものの差分を広げて、差分を顕著にする。 depth　はrしか入っていない。0－1の値が入ってくる。
+				float _depth = col.r * col.r * col.r * 1000;
 
-				_depth = fmod(_depth, 1.0);
-
+				//_depth = fmod(_depth, 1.0);
+				_depth = SmoothRange(0.0, 1000, _depth);
 				float _uv_interval = 1.0 / _LineInterVal;
-				//線を描画する。
-				//float _mod_interval = fmod(i.uv.y, _uv_interval);
+				//線を描画するための物を計算する。
+				//定期的な値を取得
 				float _mod_interval = fmod(i.uv.y - _depth,_uv_interval);
 				col = step(_mod_interval, _AcceptUV);
 				
@@ -83,8 +83,16 @@ Shader "PostEffect/TrickArtShader"
 				//col = col * _depth;
 				//col.g = step(_mod_interval, _AcceptUV);
 
-				return col;
+				return _depth;
 			}
+
+
+			float SmoothRange( float base_value_min, float base_value_max, float check_value)
+			{
+				float ans = check_value / base_value_max;
+				return ans;
+			}
+
 			ENDCG
 		}
 	}
